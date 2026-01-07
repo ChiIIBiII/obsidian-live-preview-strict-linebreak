@@ -5,7 +5,9 @@ import {
 	EditorView,
 	WidgetType,
 } from "@codemirror/view";
+import { syntaxTree } from "@codemirror/language";
 import type { MyPluginSettings } from "../settings";
+import { editorLivePreviewField } from "obsidian";
 
 class SoftBreakIndicatorWidget extends WidgetType {
 	constructor(private indicator: string) {
@@ -37,15 +39,34 @@ function endsWithMarkdownHardBreak(lineText: string): boolean {
 	return lineText.endsWith("  ") || lineText.endsWith("\\");
 }
 
+function nextIsListItem(state: Transaction["state"], lineNumber: number): boolean {
+	const line = state.doc.line(lineNumber + 1);
+	const tree = syntaxTree(state);
+	let node: any = tree.resolve(line.from + 1);
+	
+	// console.log(`Line ${lineNumber}: "${line.text}"`);
+	while (node) {
+		// console.log(`  - Node: ${node.name}`);
+		if (node.name.includes("list")) {
+			return true;
+		}
+		node = node.parent;
+	}
+	
+	return false;
+}
+
 function createSoftLineBreaksField(settings: MyPluginSettings): StateField<DecorationSet> {
 	return StateField.define<DecorationSet>({
 		create() {
 			return Decoration.none;
 		},
 		update(oldState: DecorationSet, transaction: Transaction) {
+			if (!transaction.state.field(editorLivePreviewField)) {
+				return Decoration.none;
+			}
 			const builder = new RangeSetBuilder<Decoration>();
 			const doc = transaction.state.doc;
-			const decoration = createSoftBreakDecoration(settings.softBreakIndicator);
 
 			for (let lineNumber = 1; lineNumber < doc.lines; lineNumber++) {
 				const line = doc.line(lineNumber);
@@ -53,8 +74,9 @@ function createSoftLineBreaksField(settings: MyPluginSettings): StateField<Decor
 
 				if (line.text.trim().length === 0 || nextLine.text.trim().length === 0) continue;
 				if (endsWithMarkdownHardBreak(line.text)) continue;
+				if (nextIsListItem(transaction.state, lineNumber)) continue;
 
-				builder.add(line.to, line.to + 1, decoration);
+				builder.add(line.to, line.to + 1, createSoftBreakDecoration(settings.softBreakIndicator));
 			}
 
 			return builder.finish();
