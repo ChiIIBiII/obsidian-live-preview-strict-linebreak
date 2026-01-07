@@ -1,15 +1,15 @@
-import {App, PluginSettingTab, Setting} from "obsidian";
-import MyPlugin from "./main";
+import { App, PluginSettingTab, Setting } from "obsidian";
+import type MyPlugin from "./main";
 
 export interface MyPluginSettings {
-	mySetting: string;
+	softBreakIndicator: string;
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+	softBreakIndicator: "↵",
+};
 
-export class SampleSettingTab extends PluginSettingTab {
+export class MyPluginSettingTab extends PluginSettingTab {
 	plugin: MyPlugin;
 
 	constructor(app: App, plugin: MyPlugin) {
@@ -18,19 +18,20 @@ export class SampleSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const {containerEl} = this;
-
+		const { containerEl } = this;
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+			.setName("Soft break indicator")
+			.setDesc("Character to display for soft line breaks (newlines within paragraphs)")
+			.addText((text) =>
+				text
+					.setPlaceholder("↵")
+					.setValue(this.plugin.settings.softBreakIndicator)
+					.onChange(async (value) => {
+						this.plugin.settings.softBreakIndicator = value || "↵";
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
