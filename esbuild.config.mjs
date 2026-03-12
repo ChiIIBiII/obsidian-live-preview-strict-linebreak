@@ -1,6 +1,9 @@
 import esbuild from "esbuild";
 import process from "process";
-import { builtinModules } from 'node:module';
+import fs from "node:fs";
+import path from "node:path";
+import { builtinModules } from "node:module";
+import { fileURLToPath } from "node:url";
 
 const banner =
 `/*
@@ -9,13 +12,48 @@ if you want to view the source, please visit the github repository of this plugi
 */
 `;
 
-const prod = (process.argv[2] === "production");
+const mode = process.argv[2] ?? "dev";
+const prod = mode === "production";
+const test = mode === "test";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+
+let pluginId = "live-preview-strict-linebreak";
+try {
+	const manifest = JSON.parse(
+		fs.readFileSync(path.join(scriptDir, "manifest.json"), "utf8"),
+	);
+	if (manifest?.id && typeof manifest.id === "string") {
+		pluginId = manifest.id;
+	}
+} catch {
+	// Fall back to the default plugin id.
+}
+
+const outfile = prod
+	? path.join(scriptDir, "main.js")
+	: path.join(scriptDir, "test-vault", ".obsidian", "plugins", pluginId, "main.js");
+
+fs.mkdirSync(path.dirname(outfile), { recursive: true });
+
+if (!prod) {
+	const pluginDir = path.dirname(outfile);
+	fs.copyFileSync(
+		path.join(scriptDir, "manifest.json"),
+		path.join(pluginDir, "manifest.json"),
+	);
+
+	const stylesSrc = path.join(scriptDir, "styles.css");
+	if (fs.existsSync(stylesSrc)) {
+		fs.copyFileSync(stylesSrc, path.join(pluginDir, "styles.css"));
+	}
+}
 
 const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["src/main.ts"],
+	entryPoints: [path.join(scriptDir, "src", "main.ts")],
 	bundle: true,
 	external: [
 		"obsidian",
@@ -37,11 +75,11 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outfile,
 	minify: prod,
 });
 
-if (prod) {
+if (prod || test) {
 	await context.rebuild();
 	process.exit(0);
 } else {
