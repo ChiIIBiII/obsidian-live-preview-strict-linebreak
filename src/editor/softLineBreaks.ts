@@ -115,14 +115,14 @@ function createSoftLineBreaksField(settings: MyPluginSettings): StateField<SoftL
 				const nextLineIsInTable = lineIsInTable(transaction.state, tree, lineNumber + 1);
 				const currentLineIsInParserCodeBlock = parentsContainKeywords(transaction.state, tree, lineNumber, ["fencedcode", "codeblock"]);
 				const nextLineIsInParserCodeBlock = parentsContainKeywords(transaction.state, tree, lineNumber + 1, ["fencedcode", "codeblock"]);
-				const currentLineIsInParserMathBlock = parentsContainKeywords(transaction.state, tree, lineNumber, ["math"]);
-				const nextLineIsInParserMathBlock = parentsContainKeywords(transaction.state, tree, lineNumber + 1, ["math"]);
 				const currentAndNextLineAreInCodeBlock =
 					(fencedCodeBlockInfo.lineIsInFencedCodeBlock || currentLineIsInParserCodeBlock) &&
 					(nextLineFencedCodeBlockInfo.lineIsInFencedCodeBlock || nextLineIsInParserCodeBlock);
+				// Use explicit $$ fence state here to avoid parser context bleeding onto
+				// the separator line after a closing math fence.
 				const currentAndNextLineAreInMathBlock =
-					(mathBlockInfo.lineIsInMathBlock || currentLineIsInParserMathBlock) &&
-					(nextLineMathBlockInfo.lineIsInMathBlock || nextLineIsInParserMathBlock);
+					mathBlockInfo.lineIsInMathBlock &&
+					nextLineMathBlockInfo.lineIsInMathBlock;
 				const currentAndNextLineAreInList = currentLineIsInList && nextLineIsInList;
 				const currentAndNextLineAreInTable = currentLineIsInTable && nextLineIsInTable;
 				fencedCodeBlockState = fencedCodeBlockInfo.nextFenceState;
