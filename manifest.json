@@ -1,9 +1,9 @@
 {
 	"id": "live-preview-strict-linebreak",
 	"name": "Live Preview Strict Line Break",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"minAppVersion": "0.15.0",
-	"description": "Enables strict line breaks in Obsidian's Live Preview mode. Single line breaks are shown as a custom character with 50% opacity.",
+	"description": "Marks line breaks that Markdown removes, and block boundaries that are missing their blank line, in Live Preview.",
 	"author": "ChiIIBiII",
 	"authorUrl": "https://github.com/ChiIIBiII",
 	"isDesktopOnly": false

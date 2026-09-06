@@ -3,3 +3,21 @@
 	height: var(--p-spacing);
 	pointer-events: none;
 }
+
+/* Replaces the newline: the lines really are joined. */
+.cm-softbreak-indicator {
+	opacity: 0.5;
+}
+
+/* Sits beside the line: the newline is still there. */
+.cm-blockbreak-indicator {
+	opacity: 0.35;
+}
+
+.cm-blockbreak-trailing {
+	padding-inline-start: 0.35em;
+}
+
+.cm-blockbreak-leading {
+	padding-inline-end: 0.35em;
+}

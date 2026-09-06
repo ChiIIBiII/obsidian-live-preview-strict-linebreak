@@ -1,13 +1,34 @@
 # Live Preview Strict Line Break
 
-An Obsidian plugin that enforces strict line breaks in Live Preview mode. Single line breaks are visualized with a custom character at 50% opacity, making it easier to see where soft line breaks occur without affecting document rendering.
+An Obsidian plugin that makes Live Preview honest about line breaks. Live Preview shows
+every newline as a line break, which implies that pressing Enter once started a new
+block. Often it did not: Markdown silently merges the lines, or two blocks run together
+without the blank line that separates them. This plugin marks both cases.
+
+The rule is a single invariant: **only a blank line may produce a visual block break.**
 
 ## Features
 
-- Displays a custom marker (¬) for single line breaks in Live Preview mode
-- Visual feedback at 50% opacity for clear but non-intrusive visibility
-- Seamless integration with Obsidian's native Live Preview renderer
-- No impact on exported or final document appearance
+- **Joined line breaks** (default `↵`) — where Markdown removes the line break and
+  merges the two lines into one paragraph, the break is replaced by the indicator and
+  the lines render as one, exactly as they will in Reading view.
+- **Missing blank lines** (default `¶`) — where two real blocks follow each other with
+  no blank line between them, the break is kept and the indicator is drawn beside it:
+  at the end of the upper line, or at the start of the lower one when the upper line is
+  a rendered widget (math, table, mermaid).
+- Both indicators are configurable, and both render at reduced opacity.
+- Blank lines are styled as the paragraph gap Reading view uses.
+- Nothing is marked inside code blocks, math blocks, tables, frontmatter or HTML, and
+  nothing is marked between list items or table rows — there the single newline is the
+  correct separator.
+- Purely visual: the document on disk is never changed.
+
+## Documentation
+
+- **[SPEC.md](SPEC.md)** — the complete per-element specification of which newlines are
+  marked and why.
+- **[TESTING.md](TESTING.md)** — how to verify the behaviour by hand against the fixture
+  note in the dev vault.
 
 ## Installation
 
@@ -62,6 +83,18 @@ npm run lint
 
 Uses ESLint to check code quality.
 
+### Testing
+
+`npm run build:test` builds into `test-vault/`, a git-ignored dev vault with the plugin
+pre-enabled and a fixture note covering every construct in the spec. See
+[TESTING.md](TESTING.md) for the full procedure.
+
+### Behaviour changes
+
+`SPEC.md` is the source of truth for which newlines get marked. Change it together with
+`src/editor/blockClassifier.ts`, and extend the fixture note so the new case is covered
+by [TESTING.md](TESTING.md).
+
 ## Publishing
 
 ### Initial Release Setup
@@ -92,7 +125,7 @@ Uses ESLint to check code quality.
      "id": "live-preview-strict-linebreak",
      "name": "Live Preview Strict Line Break",
      "author": "ChiIIBiII",
-     "description": "Enables strict line breaks in Obsidian's Live Preview mode. Single line breaks are shown as a custom character with 50% opacity.",
+     "description": "Marks line breaks that Markdown removes, and block boundaries that are missing their blank line, in Live Preview.",
      "repo": "ChiIIBiII/obsidian-live-preview-strict-linebreak"
    }
    ```
